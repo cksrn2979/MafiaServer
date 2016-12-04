@@ -9,7 +9,6 @@ import com.example.changoo.mafia.command.PlayCommand;
 import com.example.changoo.mafia.command.WaitCommand;
 import com.example.changoo.mafia.log.Logger;
 import com.example.changoo.mafia.logic.GameLogic;
-import com.example.changoo.mafia.model.SocketData;
 import com.example.changoo.mafia.model.UserInfo;
 import com.example.changoo.mafia.model.UserManager;
 
@@ -20,10 +19,10 @@ public class MyNetwork extends Thread {
 	private String myName;
 	private GameLogic gameLogic;
 
-	public MyNetwork(MySocket mySocket, UserManager users) {
+	public MyNetwork(MySocket mySocket, UserManager users, GameLogic gameLogic) {
 		this.mySocket = mySocket;
 		this.userManager = users;
-		this.gameLogic = new GameLogic(userManager);
+		this.gameLogic = gameLogic;
 	}
 
 	public void stopRecvmsg() {
@@ -168,11 +167,13 @@ public class MyNetwork extends Thread {
 
 			if (((String) recv_object).equals("ready"))
 				broad_cast(WaitCommand.NOTICE, "", recv_username + " 님 READY!!");
-			else
+			else if(((String) recv_object).equals("wait"))
 				broad_cast(WaitCommand.NOTICE, recv_username, recv_username + " 님 WAIT!!");
 
 			if (userManager.isAllUserReady())
 				gameLogic.setState("ready");
+			else 
+				gameLogic.setState("wait");
 
 			if (gameLogic.getState().equals("ready") && gameLogic.isInsizeUserNumber()) {
 				Logger.append("---- GAME START-------\n");
@@ -210,8 +211,11 @@ public class MyNetwork extends Thread {
 		case PlayCommand.IMSTARTGAME:
 			userinfo = userManager.getUser(recv_username);
 			userinfo.setState((String) recv_object);
+			
 			if (userManager.isAllUserPlay())
 				gameLogic.setState("play");
+			else
+				gameLogic.setState("ready");
 
 			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
 			if (userManager.isAllUserPlay()) {
@@ -230,6 +234,8 @@ public class MyNetwork extends Thread {
 
 			if (userManager.isAllUserInSunny())
 				gameLogic.setWhen("sunny");
+			else
+				gameLogic.setWhen("night");
 
 			if (gameLogic.getWhen().equals("sunny") && gameLogic.getState().equals("play")) {
 				new Thread() {
@@ -239,7 +245,7 @@ public class MyNetwork extends Thread {
 							timer--;
 							broad_cast(PlayCommand.TIMER, "", timer);
 							try {
-								Thread.sleep(1000);
+								Thread.sleep(5000);
 							} catch (InterruptedException e) {
 							}
 						}
@@ -260,8 +266,14 @@ public class MyNetwork extends Thread {
 				broad_cast(ChatCommand.CHATNOTICE, "server", "모든 플레이어가 밤으로 가길 원합니다.");
 				gameLogic.setWantnext(true);
 			}
+			else
+				gameLogic.setWantnext(false);
 			
-			if (gameLogic.isWantnext() == true && gameLogic.getState().equals("play")
+			Logger.append(gameLogic.getState()+"\n");
+			Logger.append(gameLogic.getWhen()+"\n");
+			Logger.append(gameLogic.isWantnext()+"\n");
+			
+			if (gameLogic.isWantnext()&& gameLogic.getState().equals("play")
 					&& gameLogic.getWhen().equals("sunny")){
 				gameLogic.setState("night");
 				broad_cast(ChatCommand.CHATNOTICE, "server", "밤이 찾아 왔습니다..투표를 시작합니다");
@@ -270,15 +282,16 @@ public class MyNetwork extends Thread {
 			}
 
 			break;
+			
 		case PlayCommand.CHOICUSER:
 			gameLogic.updateChoice(recv_username, (String)recv_object);
 			if(gameLogic.isAllUserChoice()==true){
 				String name=gameLogic.getMaxChocieUsername();
 				userManager.getUser(name).setState("die");
-				send_Message(Command.USERUPDATE, "server", userManager.getUsers());
+				Logger.append("choice user  " + name);
+				broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
 			}
-			
-	
+			break;
 
 		case ChatCommand.SENDMESSAGE:
 			broad_cast(ChatCommand.SENDMESSAGE, recv_username, recv_object);

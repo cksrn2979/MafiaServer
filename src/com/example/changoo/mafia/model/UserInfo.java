@@ -7,8 +7,8 @@ public class UserInfo implements Serializable {
     static final long serialVersionUID =6880704790547550457L;
     private String name;
     private Character character;
-    private String state;
-    private String when;
+    private String state="";
+    private String when="";
     private boolean wantnext=false;
     
     public UserInfo(String name) {

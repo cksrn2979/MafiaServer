@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.example.changoo.mafia.log.Logger;
 import com.example.changoo.mafia.model.CharacterCivil;
 import com.example.changoo.mafia.model.CharacterCop;
 import com.example.changoo.mafia.model.CharacterDoctor;
@@ -27,6 +28,7 @@ public class GameLogic {
 	public GameLogic(UserManager userManager) {
 		this.userManager = userManager;	
 		numberOfCharacter = new HashMap<>();
+		userChoice=new HashMap<>();
 		numberOfCharacter.put(1, new Integer[] { 0, 1, 0, 0 });
 		numberOfCharacter.put(2, new Integer[] { 1, 1, 0, 0 });
 		// numberOfCharacter.put(3, new Integer[]{1,0,0,0});
@@ -64,14 +66,26 @@ public class GameLogic {
 	}
 	
 	public void newChoice(){
-		userChoice=new HashMap<>();
+		userChoice.clear();
 		for(int i=0; i<userManager.size();i++){
-			userChoice.put(userManager.getUser(i).getName(),null);
+			userChoice.put(userManager.getUser(i).getName(),"");
 		}
 	}
 	
-	public void updateChoice(String name, String choice){
+	public void updateChoice(String name, String choice){		
 		userChoice.put(name,choice);
+	}
+	
+	
+	public boolean isAllUserChoice(){
+		Set<String> set=userChoice.keySet();
+		Iterator<String> iter=set.iterator();
+		while(iter.hasNext()){
+			String name=iter.next();
+			if(userChoice.get(name).equals(""))
+				return false;
+		}
+		return true;
 	}
 	
 	public String getMaxChocieUsername(){
@@ -85,10 +99,10 @@ public class GameLogic {
 			String value=userChoice.get(name);
 			if(choicedUser.get(value)!=null){
 				int choice=choicedUser.get(value);
-				choicedUser.put(name, choice+1);
+				choicedUser.put(value, choice+1);
 			}
 			else
-				choicedUser.put(name,1);
+				choicedUser.put(value,1);
 		}
 		
 		
@@ -99,6 +113,7 @@ public class GameLogic {
 		while(iter2.hasNext()){
 			String name=iter2.next();
 			Integer choice=choicedUser.get(name);
+			Logger.append(name + choice +"\n");
 			if(choice>maxint){
 				maxint=choice;
 				maxuser=name;
@@ -108,16 +123,7 @@ public class GameLogic {
 		return maxuser;
 	}
 	
-	public boolean isAllUserChoice(){
-		Set<String> set=userChoice.keySet();
-		Iterator<String> iter=set.iterator();
-		while(iter.hasNext()){
-			String name=iter.next();
-			if(userChoice.get(name)==null)
-				return false;
-		}
-		return true;
-	}
+
 
 	public boolean isInsizeUserNumber() {
 		if (userManager.size() >= MINUSER && userManager.size() <= MAXUSER)
