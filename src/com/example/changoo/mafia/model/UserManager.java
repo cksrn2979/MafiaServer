@@ -81,6 +81,16 @@ public class UserManager {
 		return result;
 	}
 	
+	public boolean isAllUserWantNext() {
+		Boolean result = true;
+		for (int i = 0; i < users.size(); i++) {
+			UserInfo user = users.get(i);
+			if (user.isWantnext()==false)
+				result = false;
+		}
+		return result;
+	}
+	
 	public boolean isAllUserInSunny() {
 		Boolean result = true;
 		for (int i = 0; i < users.size(); i++) {

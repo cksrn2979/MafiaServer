@@ -9,9 +9,18 @@ public class UserInfo implements Serializable {
     private Character character;
     private String state;
     private String when;
-
+    private boolean wantnext=false;
+    
     public UserInfo(String name) {
         this.name = name;
+    }
+
+    public boolean isWantnext() {
+        return wantnext;
+    }
+
+    public void setWantnext(boolean wantnext) {
+        this.wantnext = wantnext;
     }
 
     public String getState() {
