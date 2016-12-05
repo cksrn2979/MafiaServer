@@ -275,7 +275,7 @@ public class MyNetwork extends Thread {
 			
 			if (gameLogic.isWantnext()&& gameLogic.getState().equals("play")
 					&& gameLogic.getWhen().equals("sunny")){
-				gameLogic.setState("night");
+				gameLogic.setWhen("night");
 				broad_cast(ChatCommand.CHATNOTICE, "server", "밤이 찾아 왔습니다..투표를 시작합니다");
 				broad_cast(PlayCommand.GONIGHT, "", "");
 				gameLogic.newChoice();
