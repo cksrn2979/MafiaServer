@@ -167,12 +167,12 @@ public class MyNetwork extends Thread {
 
 			if (((String) recv_object).equals("ready"))
 				broad_cast(WaitCommand.NOTICE, "", recv_username + " 님 READY!!");
-			else if(((String) recv_object).equals("wait"))
+			else if (((String) recv_object).equals("wait"))
 				broad_cast(WaitCommand.NOTICE, recv_username, recv_username + " 님 WAIT!!");
 
 			if (userManager.isAllUserReady())
 				gameLogic.setState("ready");
-			else 
+			else
 				gameLogic.setState("wait");
 
 			if (gameLogic.getState().equals("ready") && gameLogic.isInsizeUserNumber()) {
@@ -211,7 +211,7 @@ public class MyNetwork extends Thread {
 		case PlayCommand.IMSTARTGAME:
 			userinfo = userManager.getUser(recv_username);
 			userinfo.setState((String) recv_object);
-			
+
 			if (userManager.isAllUserPlay())
 				gameLogic.setState("play");
 			else
@@ -241,11 +241,12 @@ public class MyNetwork extends Thread {
 				new Thread() {
 					public void run() {
 						Integer timer = 100;
-						while (gameLogic.getWhen().equals("sunny") && gameLogic.getState().equals("play")) {
+						while (timer >= 0 && gameLogic.getWhen().equals("sunny")
+								&& gameLogic.getState().equals("play")) {
 							timer--;
 							broad_cast(PlayCommand.TIMER, "", timer);
 							try {
-								Thread.sleep(5000);
+								Thread.sleep(1000);
 							} catch (InterruptedException e) {
 							}
 						}
@@ -257,24 +258,22 @@ public class MyNetwork extends Thread {
 		case PlayCommand.IWANTNEXT:
 			userinfo = userManager.getUser(recv_username);
 			userinfo.setWantnext((boolean) recv_object);
-			if((boolean) recv_object==true)
+			if ((boolean) recv_object == true)
 				broad_cast(ChatCommand.CHATNOTICE, "server", recv_username + "님이 밤으로 가길 원합니다.");
-			else			
+			else
 				broad_cast(ChatCommand.CHATNOTICE, "server", recv_username + "님이 밤으로 가길 원하지 않습니다.");
-			
-			if (userManager.isAllUserWantNext() == true){
+
+			if (userManager.isAllUserWantNext() == true) {
 				broad_cast(ChatCommand.CHATNOTICE, "server", "모든 플레이어가 밤으로 가길 원합니다.");
 				gameLogic.setWantnext(true);
-			}
-			else
+			} else
 				gameLogic.setWantnext(false);
-			
-			Logger.append(gameLogic.getState()+"\n");
-			Logger.append(gameLogic.getWhen()+"\n");
-			Logger.append(gameLogic.isWantnext()+"\n");
-			
-			if (gameLogic.isWantnext()&& gameLogic.getState().equals("play")
-					&& gameLogic.getWhen().equals("sunny")){
+
+			Logger.append(gameLogic.getState() + "\n");
+			Logger.append(gameLogic.getWhen() + "\n");
+			Logger.append(gameLogic.isWantnext() + "\n");
+
+			if (gameLogic.isWantnext() && gameLogic.getState().equals("play") && gameLogic.getWhen().equals("sunny")) {
 				gameLogic.setWhen("night");
 				broad_cast(ChatCommand.CHATNOTICE, "server", "밤이 찾아 왔습니다..투표를 시작합니다");
 				broad_cast(PlayCommand.GONIGHT, "", "");
@@ -282,11 +281,11 @@ public class MyNetwork extends Thread {
 			}
 
 			break;
-			
+
 		case PlayCommand.CHOICUSER:
-			gameLogic.updateChoice(recv_username, (String)recv_object);
-			if(gameLogic.isAllUserChoice()==true){
-				String name=gameLogic.getMaxChocieUsername();
+			gameLogic.updateChoice(recv_username, (String) recv_object);
+			if (gameLogic.isAllUserChoice() == true) {
+				String name = gameLogic.getMaxChocieUsername();
 				userManager.getUser(name).setState("die");
 				Logger.append("choice user  " + name);
 				broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
