@@ -7,5 +7,5 @@ package com.example.changoo.mafia.command;
 public class ChatCommand {
     public static final String SENDMESSAGE = "/chat SENDMESSAGE";
     public static final String CHATNOTICE = "/chat CHATNOTICE";
-
+    public static final String SENDEMOTICON = "/chat SENDEMOTICON";
 }

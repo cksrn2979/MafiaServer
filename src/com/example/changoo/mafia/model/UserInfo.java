@@ -6,11 +6,11 @@ import java.io.Serializable;
 public class UserInfo implements Serializable {
     static final long serialVersionUID =6880704790547550457L;
     private String name;
-    private Character character;
+    private String character="";
     private String state="";
     private String when="";
     private boolean wantnext=false;
-    
+
     public UserInfo(String name) {
         this.name = name;
     }
@@ -39,11 +39,15 @@ public class UserInfo implements Serializable {
         this.when = when;
     }
 
-    public Character getCharacter() {
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public String getCharacter() {
         return character;
     }
 
-    public void setCharacter(Character character) {
+    public void setCharacter(String character) {
         this.character = character;
     }
 

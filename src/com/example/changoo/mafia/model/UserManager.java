@@ -1,36 +1,37 @@
 package com.example.changoo.mafia.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
 import com.example.changoo.mafia.network.MyNetwork;
 
 public class UserManager {
-	Vector<UserInfo> users = new Vector<>();
+	Vector<UserInfo> userinfos = new Vector<>();
 	HashMap<String, MyNetwork> userNetworks = new HashMap<>();
 
 	public Vector<UserInfo> getUsers() {
-		return users;
+		return userinfos;
 	}
 
 	public void setUsers(Vector<UserInfo> users) {
-		this.users = users;
+		this.userinfos = users;
 	}
 
 	public void addUser(String userName) {
 		UserInfo userInfo=new UserInfo(userName);
 		userInfo.setState("wait");
-		users.add(userInfo);
+		userinfos.add(userInfo);
 	}
 
 	public UserInfo getUser(int i) {
-		return users.get(i);
+		return userinfos.get(i);
 	}
 
 	public UserInfo getUser(String username) {
-		for (int i = 0; i < users.size(); i++) {
-			if (username.equals(users.get(i).getName()))
-				return users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			if (username.equals(userinfos.get(i).getName()))
+				return userinfos.get(i);
 		}
 		return null;
 	}
@@ -44,17 +45,17 @@ public class UserManager {
 	}
 
 	public void removeUser(String userName) {
-		users.remove(getUser(userName));
+		userinfos.remove(getUser(userName));
 		userNetworks.remove(userName);
 	}
 
 	public int size() {
-		return users.size();
+		return userinfos.size();
 	}
 
 	public boolean checkingName(String userName) {
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo u = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo u = userinfos.get(i);
 			if (userName.equals(u.getName()) == true)
 				return false;
 		}
@@ -63,8 +64,8 @@ public class UserManager {
 
 	public boolean isAllUserReady() {
 		Boolean result = true;
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo user = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo user = userinfos.get(i);
 			if (user.getState().equals("ready") == false)
 				result = false;
 		}
@@ -73,8 +74,8 @@ public class UserManager {
 	
 	public boolean isAllUserPlay() {
 		Boolean result = true;
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo user = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo user = userinfos.get(i);
 			if (user.getState().equals("play") == false)
 				result = false;
 		}
@@ -83,8 +84,8 @@ public class UserManager {
 	
 	public boolean isAllUserWantNext() {
 		Boolean result = true;
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo user = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo user = userinfos.get(i);
 			if (user.isWantnext()==false)
 				result = false;
 		}
@@ -93,8 +94,8 @@ public class UserManager {
 	
 	public boolean isAllUserInSunny() {
 		Boolean result = true;
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo user = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo user = userinfos.get(i);
 			if (user.getWhen().equals("sunny") == false)
 				result = false;
 		}
@@ -103,14 +104,23 @@ public class UserManager {
 	
 	public boolean isAllUserInNight() {
 		Boolean result = true;
-		for (int i = 0; i < users.size(); i++) {
-			UserInfo user = users.get(i);
+		for (int i = 0; i < userinfos.size(); i++) {
+			UserInfo user = userinfos.get(i);
 			if (user.getWhen().equals("nigth") == false)
 				result = false;
 		}
 		return result;
 	}
 	
-	
+	public String[] getAliveUserNames (){
+        ArrayList<String> usernames=new ArrayList<>();
+        int size= userinfos.size();
+        for(int i=0; i<size; i++){
+            if(userinfos.get(i).getState().equals("play"))
+                usernames.add(userinfos.get(i).getName());
+        }
+        String[] names=usernames.toArray((new String[usernames.size()]));
+        return  names;
+    }
 
 }

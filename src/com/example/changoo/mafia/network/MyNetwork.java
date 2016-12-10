@@ -2,6 +2,8 @@ package com.example.changoo.mafia.network;
 
 import java.io.IOException;
 
+import javax.swing.plaf.basic.DefaultMenuLayout;
+
 import com.example.changoo.mafia.command.ChatCommand;
 import com.example.changoo.mafia.command.Command;
 import com.example.changoo.mafia.command.LoginCommand;
@@ -9,6 +11,7 @@ import com.example.changoo.mafia.command.PlayCommand;
 import com.example.changoo.mafia.command.WaitCommand;
 import com.example.changoo.mafia.log.Logger;
 import com.example.changoo.mafia.logic.GameLogic;
+import com.example.changoo.mafia.model.SocketData;
 import com.example.changoo.mafia.model.UserInfo;
 import com.example.changoo.mafia.model.UserManager;
 
@@ -40,40 +43,40 @@ public class MyNetwork extends Thread {
 		}
 	}
 
-	public void broad_cast(String recv_command, String recv_username, Object recv_object) {
+	public void broad_cast(String send_command, String send_name, Object send_object) {
 		for (int i = 0; i < userManager.size(); i++) {
 			UserInfo imsi = userManager.getUser(i);
 			MyNetwork network = userManager.getUserNetwork(imsi);
-			network.send_Message(recv_command, recv_username, recv_object);
+			network.send_Message(send_command, send_name, send_object);
 		}
 	}
 
-	public void send_Message_ToMafia(String recv_command, String recv_username, Object recv_object) {
+	public void send_Message_ToMafia(String send_command, String send_name, Object send_object) {
 		for (int i = 0; i < userManager.size(); i++) {
 			UserInfo imsi = userManager.getUser(i);
-			if (imsi.getCharacter().getName().equals("MAFIA")) {
+			if (imsi.getCharacter().equals("MAFIA")) {
 				MyNetwork network = userManager.getUserNetwork(imsi);
-				network.send_Message(recv_command, recv_username, recv_object);
+				network.send_Message(send_command, send_name, send_object);
 			}
 		}
 	}
 
-	public void send_Message_ToCop(String recv_command, String recv_username, Object recv_object) {
+	public void send_Message_ToCop(String send_command, String send_name, Object send_object) {
 		for (int i = 0; i < userManager.size(); i++) {
 			UserInfo imsi = userManager.getUser(i);
-			if (imsi.getCharacter().getName().equals("COP")) {
+			if (imsi.getCharacter().equals("COP")) {
 				MyNetwork network = userManager.getUserNetwork(imsi);
-				network.send_Message(recv_command, recv_username, recv_object);
+				network.send_Message(send_command, send_name, send_object);
 			}
 		}
 	}
 
-	public void send_Message_ToDoctor(String recv_command, String recv_username, Object recv_object) {
+	public void send_Message_ToDoctor(String send_command, String send_name, Object send_object) {
 		for (int i = 0; i < userManager.size(); i++) {
 			UserInfo imsi = userManager.getUser(i);
-			if (imsi.getCharacter().getName().equals("DOCTOR")) {
+			if (imsi.getCharacter().equals("DOCTOR")) {
 				MyNetwork network = userManager.getUserNetwork(imsi);
-				network.send_Message(recv_command, recv_username, recv_object);
+				network.send_Message(send_command, send_name, send_object);
 			}
 		}
 	}
@@ -81,7 +84,7 @@ public class MyNetwork extends Thread {
 	public void send_Message_ToCivil(String send_command, String send_name, Object send_object) {
 		for (int i = 0; i < userManager.size(); i++) {
 			UserInfo imsi = userManager.getUser(i);
-			if (imsi.getCharacter().getName().equals("CIVIL")) {
+			if (imsi.getCharacter().equals("CIVIL")) {
 				MyNetwork network = userManager.getUserNetwork(imsi);
 				network.send_Message(send_command, send_name, send_object);
 			}
@@ -92,10 +95,7 @@ public class MyNetwork extends Thread {
 		try {
 			Logger.append("SEND " + send_command + "  >>>>>  To. " + myName + "\n");
 			Logger.append("\n");
-			mySocket.writeObject(send_command);
-			mySocket.writeObject(send_name);
-			mySocket.writeObject(send_object);
-			mySocket.outFlush();
+			mySocket.writeObject(new SocketData(send_command, send_name, send_object));
 
 		} catch (IOException | ClassNotFoundException e) {
 			Logger.append(myName.toString() + "\n" + "메시지 송신 에러 발생\n");
@@ -109,13 +109,15 @@ public class MyNetwork extends Thread {
 			while (Thread.currentThread() == receiveMsg) {
 				try {
 
-					String recv_command = (String) mySocket.readObject();
-					String recv_userinfo = (String) mySocket.readObject();
-					Object recv_object = mySocket.readObject();
-					Logger.append("RECV " + recv_command + "  <<<<  By. " + recv_userinfo + "\n");
+					SocketData socketData = (SocketData) mySocket.readObject();
+
+					String recv_command = socketData.getCommand();
+					String recv_name = socketData.getName();
+					Object recv_object = socketData.getObject();
+					Logger.append("RECV " + recv_command + "  <<<<  By. " + recv_name + "\n");
 					Logger.append("\n");
 
-					recvMsgLogic(recv_command, recv_userinfo, recv_object);
+					recvMsgLogic(recv_command, recv_name, recv_object);
 
 				} catch (IOException | ClassNotFoundException e) {
 					try {
@@ -135,48 +137,61 @@ public class MyNetwork extends Thread {
 
 	}// run메소드 끝
 
-	public void recvMsgLogic(String recv_command, String recv_username, Object recv_object) throws IOException {
+	///// *받은 데이터의 , 맞는 로직 구현*/
+	private void recvMsgLogic(String recv_command, String recv_name, Object recv_object) throws IOException {
 		UserInfo userinfo;
+
 		switch (recv_command) {
 
+		/* 이름 확인 요청 */
 		case LoginCommand.REQUESTCONFIRMNAME:
-			if (userManager.checkingName(recv_username) == true) {
-				send_Message(LoginCommand.CONFIRMNAME, recv_username, true);
-				myName = recv_username;
-				Logger.append("동일 이름 확인되지 않음, 접속 가능!\n");
-				userManager.addUser(recv_username);
-				userManager.addUserNetwork(recv_username, MyNetwork.this);
-				Logger.append("유저 추가, 접속 가능!\n");
-				send_Message(LoginCommand.GOWAITROOM, recv_username, true);
 
-			} else {
-				send_Message(LoginCommand.CONFIRMNAME, recv_username, false);
+			/* 동일 이름 확인, 접속가능  */
+			if (userManager.checkingName(recv_name) == true) {
+				Logger.append("동일 이름 확인되지 않음, 접속 가능!\n");
+				send_Message(LoginCommand.CONFIRMNAME, recv_name, true);
+				myName = recv_name;				
+				userManager.addUser(recv_name);
+				userManager.addUserNetwork(recv_name, MyNetwork.this);
+				Logger.append("유저 추가, 접속 가능!\n");
+				send_Message(LoginCommand.GOWAITROOM, recv_name, true);
+
+			} 
+			
+			/*동일 이름 확인, 접속 불가*/
+			else {
+				send_Message(LoginCommand.CONFIRMNAME, recv_name, false);
 				Logger.append("동일 이름 확인, 접속 불가!\n");
 			}
 			break;
 
+		/* 유저 대기실로 입장 */
 		case WaitCommand.IMWAITACTIVITY:
-			broad_cast(WaitCommand.NOTICE, "", recv_username + " 님이 입장하셨습니다!");
+			broad_cast(WaitCommand.NOTICE, "", recv_name + " 님이 입장하셨습니다!");
 			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
 			break;
 
+		/* 유저 레디 */
 		case WaitCommand.IMREADY:
-			userinfo = userManager.getUser(recv_username);
+			userinfo = userManager.getUser(recv_name);
 			userinfo.setState((String) recv_object);
 			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
 
 			if (((String) recv_object).equals("ready"))
-				broad_cast(WaitCommand.NOTICE, "", recv_username + " 님 READY!!");
+				broad_cast(WaitCommand.NOTICE, "", recv_name + " 님 READY!!");
 			else if (((String) recv_object).equals("wait"))
-				broad_cast(WaitCommand.NOTICE, recv_username, recv_username + " 님 WAIT!!");
+				broad_cast(WaitCommand.NOTICE, "", recv_name + " 님 WAIT!!");
 
+			/*모든 유저가 레디 상태인지 확인, 게임 상태 변경 */
 			if (userManager.isAllUserReady())
 				gameLogic.setState("ready");
 			else
 				gameLogic.setState("wait");
 
+			/*게임 상태가 레디이고, 유저 인원 수가 가능한 인원인지 확인 */
 			if (gameLogic.getState().equals("ready") && gameLogic.isInsizeUserNumber()) {
-				Logger.append("---- GAME START-------\n");
+				
+				/*카운트 다운을 시작함 */
 				new Thread() {
 					public void run() {
 						int count = 5;
@@ -190,13 +205,20 @@ public class MyNetwork extends Thread {
 								return;
 							}
 						}
-
+						
+						/*카운트 다운이 정상적으로 끝날경우, 게임을 시작함*/
 						if (count == 0) {
+							Logger.append("---- GAME START-------\n");
 							broad_cast(WaitCommand.NOTICE, "", "게임 스타트!!!!");
-
+							
+							/*유저들에게 직업을 부여함 */
 							if (gameLogic.updateCharacter())
 								Logger.append("---- Character update-------\n");
+							
+							/*요저 정보 갱신을 요청함 */
 							broad_cast(Command.USERUPDATE, "", userManager.getUsers());
+							
+							/*게임을 시작 하기를 요청함 */
 							broad_cast(WaitCommand.STARTGAME, "", "");
 
 						}
@@ -208,8 +230,9 @@ public class MyNetwork extends Thread {
 
 			break;
 
+		/* 유저 게임 시작 */
 		case PlayCommand.IMSTARTGAME:
-			userinfo = userManager.getUser(recv_username);
+			userinfo = userManager.getUser(recv_name);
 			userinfo.setState((String) recv_object);
 
 			if (userManager.isAllUserPlay())
@@ -227,8 +250,9 @@ public class MyNetwork extends Thread {
 			}
 			break;
 
+		/* 유저 낮에 있음 */
 		case PlayCommand.IMINSUNNY:
-			userinfo = userManager.getUser(recv_username);
+			userinfo = userManager.getUser(recv_name);
 			userinfo.setWhen((String) recv_object);
 			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
 
@@ -255,45 +279,116 @@ public class MyNetwork extends Thread {
 			}
 			break;
 
+		//// * 유저 다음 턴으로 가기를 원함 */
 		case PlayCommand.IWANTNEXT:
-			userinfo = userManager.getUser(recv_username);
+			userinfo = userManager.getUser(recv_name);
 			userinfo.setWantnext((boolean) recv_object);
 			if ((boolean) recv_object == true)
-				broad_cast(ChatCommand.CHATNOTICE, "server", recv_username + "님이 밤으로 가길 원합니다.");
+				broad_cast(ChatCommand.CHATNOTICE, "server", recv_name + "님이 밤으로 가길 원합니다.");
 			else
-				broad_cast(ChatCommand.CHATNOTICE, "server", recv_username + "님이 밤으로 가길 원하지 않습니다.");
+				broad_cast(ChatCommand.CHATNOTICE, "server", recv_name + "님이 밤으로 가길 원하지 않습니다.");
 
+			/* 모든 유저가 밤으로 가기를 원할경우 */
 			if (userManager.isAllUserWantNext() == true) {
-				broad_cast(ChatCommand.CHATNOTICE, "server", "모든 플레이어가 밤으로 가길 원합니다.");
+
 				gameLogic.setWantnext(true);
-			} else
+
+				broad_cast(ChatCommand.CHATNOTICE, "server", "모든 플레이어가 밤으로 가길 원합니다.");
+
+				/* 터치 불가한 상태로 전환 */
+				broad_cast(Command.NOTOUCH, "", "");
+
+				/* 카운트 다운 시작 */
+				new Thread() {
+					public void run() {
+						broad_cast(ChatCommand.CHATNOTICE, "server", "5초후 투표를 시작합니다");
+						int count = 5;
+						while (count > 0) {
+							count--;
+							broad_cast(ChatCommand.CHATNOTICE, "", "투표까지 " + "");
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								return;
+							}
+						}
+
+						if (count == 0) {
+							broad_cast(ChatCommand.CHATNOTICE, "server", "투표를 시작합니다..");
+
+							/* 모든 사용자에게 투표 시작을 요청함 */
+							broad_cast(PlayCommand.STARTCHOICE, "", "");
+
+							/* 새로운 투표 시작 */
+							gameLogic.newVote();
+						}
+					}
+				}.start();
+
+			}
+
+			/* 모든 유저가 밤으로 가기를 원하지 않은 경우 */
+			else
 				gameLogic.setWantnext(false);
-
-			Logger.append(gameLogic.getState() + "\n");
-			Logger.append(gameLogic.getWhen() + "\n");
-			Logger.append(gameLogic.isWantnext() + "\n");
-
-			if (gameLogic.isWantnext() && gameLogic.getState().equals("play") && gameLogic.getWhen().equals("sunny")) {
-				gameLogic.setWhen("night");
-				broad_cast(ChatCommand.CHATNOTICE, "server", "밤이 찾아 왔습니다..투표를 시작합니다");
-				broad_cast(PlayCommand.GONIGHT, "", "");
-				gameLogic.newChoice();
-			}
-
 			break;
 
+		//// * 유저 투표함. 선택한 사람 전송 */
 		case PlayCommand.CHOICUSER:
-			gameLogic.updateChoice(recv_username, (String) recv_object);
-			if (gameLogic.isAllUserChoice() == true) {
-				String name = gameLogic.getMaxChocieUsername();
+
+			/* 투표 업데이트 */
+			gameLogic.updateVote(recv_name, (String) recv_object);
+
+			/* 모든 유저가 투표를 완료함 */
+			if (gameLogic.isAllUserVote() == true) {
+
+				/* 가장 많은 표를 받은 유저 확인 */
+				String name = gameLogic.getMaxVotedUser();
+
+				/* 가장 많읂 표를 받은 유저 상태를 die로 전환 */
 				userManager.getUser(name).setState("die");
-				Logger.append("choice user  " + name);
+
+				/* 유저 정보 갱신, 사망자 공지 */
 				broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
+				broad_cast(ChatCommand.CHATNOTICE, "server", name + "님이 투표로 처형 되었습니다.");
+
+				/* 유저 터치 불가한 상태로 전환 */
+				broad_cast(Command.NOTOUCH, "", "");
+
+				/* 밤이 오기 카운트 시작 */
+				broad_cast(ChatCommand.CHATNOTICE, "server", "5초후 밤이 찾아옵니다.");
+				new Thread() {
+					public void run() {
+
+						int count = 5;
+						while (count > 0) {
+							count--;
+							broad_cast(ChatCommand.CHATNOTICE, "", "밤까지 " + "");
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								return;
+							}
+						}
+
+						if (count == 0) {
+							broad_cast(ChatCommand.CHATNOTICE, "server", "밤이 찾아옵니다..활동이 시작됩니다");
+
+							/* 모든 사용자에게 밤으로 가기를 요청함 */
+							broad_cast(PlayCommand.GONIGHT, "", "");
+						}
+					}
+				}.start();
+
 			}
 			break;
 
+		/* 유저 채팅을 보냄 */
 		case ChatCommand.SENDMESSAGE:
-			broad_cast(ChatCommand.SENDMESSAGE, recv_username, recv_object);
+			broad_cast(ChatCommand.SENDMESSAGE, recv_name, recv_object);
+			break;
+
+		case ChatCommand.SENDEMOTICON:
+			broad_cast(ChatCommand.SENDEMOTICON, recv_name, recv_object);
 			break;
 
 		}

@@ -25,26 +25,13 @@ public class MySocket{
 		oos = new ObjectOutputStream(os);
 	}
 
-	public void writeUTF(String str) throws ClassNotFoundException, IOException {
-		 oos.writeUTF(str);
-		 oos.reset();
-				
-	}
-	
+
 	public void writeObject(Object obj) throws ClassNotFoundException, IOException {   
 	     oos.writeObject(obj);
 	     oos.reset();		
-	     oos.flush();
 	}
 	
-	public void outFlush() throws IOException{
-		
-	}
 
-	public String readUTF() throws ClassNotFoundException, IOException {		
-		return ois.readUTF();
-		
-	}
 	public Object readObject() throws ClassNotFoundException, IOException {		
 		return ois.readObject();
 		
