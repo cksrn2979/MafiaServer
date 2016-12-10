@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
+import com.example.changoo.mafia.log.Logger;
 import com.example.changoo.mafia.network.MyNetwork;
 
 public class UserManager {
@@ -19,7 +20,7 @@ public class UserManager {
 	}
 
 	public void addUser(String userName) {
-		UserInfo userInfo=new UserInfo(userName);
+		UserInfo userInfo = new UserInfo(userName);
 		userInfo.setState("wait");
 		userinfos.add(userInfo);
 	}
@@ -71,7 +72,7 @@ public class UserManager {
 		}
 		return result;
 	}
-	
+
 	public boolean isAllUserPlay() {
 		Boolean result = true;
 		for (int i = 0; i < userinfos.size(); i++) {
@@ -81,46 +82,49 @@ public class UserManager {
 		}
 		return result;
 	}
-	
+
 	public boolean isAllUserWantNext() {
 		Boolean result = true;
 		for (int i = 0; i < userinfos.size(); i++) {
 			UserInfo user = userinfos.get(i);
-			if (user.isWantnext()==false)
+			if (user.isWantnext() == false && user.getState().equals("play"))
 				result = false;
 		}
 		return result;
 	}
-	
+
 	public boolean isAllUserInSunny() {
 		Boolean result = true;
 		for (int i = 0; i < userinfos.size(); i++) {
 			UserInfo user = userinfos.get(i);
-			if (user.getWhen().equals("sunny") == false)
+			if (user.getWhen().equals("sunny") == false && user.getState().equals("play"))
 				result = false;
 		}
 		return result;
 	}
-	
+
 	public boolean isAllUserInNight() {
 		Boolean result = true;
 		for (int i = 0; i < userinfos.size(); i++) {
 			UserInfo user = userinfos.get(i);
-			if (user.getWhen().equals("nigth") == false)
+		
+			if (user.getWhen().equals("night") == false && user.getState().equals("play")){
+				Logger.append(user.getName() +"님은 WHEN :  " + user.getWhen() + "상태는 : " +user.getState() +"\n");
 				result = false;
+			}
 		}
 		return result;
 	}
-	
-	public String[] getAliveUserNames (){
-        ArrayList<String> usernames=new ArrayList<>();
-        int size= userinfos.size();
-        for(int i=0; i<size; i++){
-            if(userinfos.get(i).getState().equals("play"))
-                usernames.add(userinfos.get(i).getName());
-        }
-        String[] names=usernames.toArray((new String[usernames.size()]));
-        return  names;
-    }
+
+	public String[] getAliveUserNames() {
+		ArrayList<String> usernames = new ArrayList<>();
+		int size = userinfos.size();
+		for (int i = 0; i < size; i++) {
+			if (userinfos.get(i).getState().equals("play"))
+				usernames.add(userinfos.get(i).getName());
+		}
+		String[] names = usernames.toArray((new String[usernames.size()]));
+		return names;
+	}
 
 }

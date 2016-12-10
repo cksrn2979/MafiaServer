@@ -1,5 +1,6 @@
 package com.example.changoo.mafia.network;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -26,13 +27,14 @@ public class MySocket{
 	}
 
 
-	public void writeObject(Object obj) throws ClassNotFoundException, IOException {   
+	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{   
 	     oos.writeObject(obj);
-	     oos.reset();		
+	     oos.reset();
+	     
 	}
 	
 
-	public Object readObject() throws ClassNotFoundException, IOException {		
+	public Object readObject() throws ClassNotFoundException, IOException,EOFException {		
 		return ois.readObject();
 		
 	}
