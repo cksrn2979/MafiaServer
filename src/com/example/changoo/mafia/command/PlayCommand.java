@@ -5,6 +5,8 @@ package com.example.changoo.mafia.command;
  */
 
 public class PlayCommand {
+	public static final String NOTICE="/play NOTICE";
+	public static final String IMPOTANTNOTICE="/play IMPORTANTNOTICE";
     public static final String IMSTARTGAME="/play IMSTARTGAME";
     public static final String IMINSUNNY="/play IMINSUNNY";
     public static final String IMINNIGHT="/play IMINNIGHT";
@@ -12,8 +14,11 @@ public class PlayCommand {
     public static final String IWANTNEXT="/play IWANTNEXT";
     public static final String STARTVOTE="/play STARTVOTE";
     public static final String GONIGHT="/play GONIGHT";
-    public static final String NOTICE="/play NOTICE";
+    
     public static final String VOTEUSER="/play VOTEUSER";
     public static final String CHOICEUSERINNIGHT="/play CHOICEUSERINNIGHT";
     public static final String GOSUNNY="/play GOSUNNY";
+    public static final String NOTOUCHABLE="/play NOTOUCHABLE";
+    public static final String TOUCHABLE="/play TOUCHABLE";
+    public static final String YOUAREDIE="/play YOUAREDIE";
 }

@@ -33,9 +33,9 @@ public class GameLogic {
 		userVote = new HashMap<>();
 		mafiaChoice = new HashMap<>();
 
-		chractorOfUserSize.put(1, new Integer[] { 0, 1, 0, 0 });
+		chractorOfUserSize.put(1, new Integer[] { 1, 0, 0, 0 });
 		chractorOfUserSize.put(2, new Integer[] { 1, 1, 0, 0 });
-		chractorOfUserSize.put(3, new Integer[] { 1, 1, 1, 0 });
+		chractorOfUserSize.put(3, new Integer[] { 2, 1, 1, 0 });
 		chractorOfUserSize.put(4, new Integer[] { 1, 1, 1, 1 });
 		chractorOfUserSize.put(5, new Integer[] { 1, 1, 1, 2 });
 		chractorOfUserSize.put(6, new Integer[] { 2, 1, 1, 2 });
@@ -53,17 +53,17 @@ public class GameLogic {
 
 	public boolean updateCharacter() {
 		Integer numberOfUsers = userManager.size();
-		Integer[] caracterDivision = chractorOfUserSize.get(numberOfUsers);
+		Integer[] characterDivision = chractorOfUserSize.get(numberOfUsers);
 
 		int numberOfMafias = 0;
 		int numberOfCops = 0;
 		int numberOfDoctors = 0;
 		int numberOfCivils = 0;
 
-		int maxOfMafias = caracterDivision[0];
-		int maxOfCops = caracterDivision[1];
-		int maxOfDoctors = caracterDivision[2];
-		int maxOfCivils = caracterDivision[3];
+		int maxOfMafias = characterDivision[0];
+		int maxOfCops = characterDivision[1];
+		int maxOfDoctors = characterDivision[2];
+		int maxOfCivils = characterDivision[3];
 
 		for (int i = 0; i < numberOfUsers; i++) {
 			UserInfo user = userManager.getUser(i);
@@ -252,6 +252,9 @@ public class GameLogic {
 		return maxuser;
 	}
 
+	public int getNumberOfChracter(String character){
+		return numberOfChractor.get(character);
+	}
 	public void setDied(String dieduser) {
 		/* 가장 많이 투표된 유저는 사망 */
 		userManager.getUser(dieduser).setState("die");

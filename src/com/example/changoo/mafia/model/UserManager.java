@@ -107,9 +107,9 @@ public class UserManager {
 		Boolean result = true;
 		for (int i = 0; i < userinfos.size(); i++) {
 			UserInfo user = userinfos.get(i);
-		
-			if (user.getWhen().equals("night") == false && user.getState().equals("play")){
-				Logger.append(user.getName() +"님은 WHEN :  " + user.getWhen() + "상태는 : " +user.getState() +"\n");
+
+			if (user.getWhen().equals("night") == false && user.getState().equals("play")) {
+				Logger.append(user.getName() + "님은 WHEN :  " + user.getWhen() + "상태는 : " + user.getState() + "\n");
 				result = false;
 			}
 		}

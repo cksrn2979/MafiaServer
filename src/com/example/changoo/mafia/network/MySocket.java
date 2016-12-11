@@ -28,14 +28,13 @@ public class MySocket{
 
 
 	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{   
-	     oos.writeObject(obj);
-	     oos.reset();
-	     
+	     oos.writeUnshared(obj);
+	     oos.reset();	     
 	}
 	
 
 	public Object readObject() throws ClassNotFoundException, IOException,EOFException {		
-		return ois.readObject();
+		return ois.readUnshared();
 		
 	}
 
