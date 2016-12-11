@@ -12,10 +12,10 @@ public class GameLogic {
 	private final static int MINUSER = 1;
 	private final static int MAXUSER = 8;
 
-	private String state;
-	private String when;
+	private String state="";
+	private String when="";
 	private boolean wantnext = false;
-
+	
 	private HashMap<Integer, Integer[]> chractorOfUserSize; // 참여 인원 숫자별 직업수
 	private HashMap<String, Integer> numberOfChractor; // 직업별 인원 배정
 	private HashMap<String, String> userVote; // 유저 투표
@@ -35,14 +35,12 @@ public class GameLogic {
 
 		chractorOfUserSize.put(1, new Integer[] { 1, 0, 0, 0 });
 		chractorOfUserSize.put(2, new Integer[] { 1, 1, 0, 0 });
-		chractorOfUserSize.put(3, new Integer[] { 2, 1, 1, 0 });
+		chractorOfUserSize.put(3, new Integer[] { 1, 1, 0, 1 });
 		chractorOfUserSize.put(4, new Integer[] { 1, 1, 1, 1 });
 		chractorOfUserSize.put(5, new Integer[] { 1, 1, 1, 2 });
 		chractorOfUserSize.put(6, new Integer[] { 2, 1, 1, 2 });
 		chractorOfUserSize.put(7, new Integer[] { 2, 1, 1, 3 });
-		chractorOfUserSize.put(8, new Integer[] { 2, 1, 1, 4 });
-		chractorOfUserSize.put(9, new Integer[] { 3, 1, 1, 4 });
-		chractorOfUserSize.put(10, new Integer[] { 3, 1, 1, 5 });
+		chractorOfUserSize.put(8, new Integer[] { 3, 1, 1, 3 });
 	}
 
 	public boolean isInsizeUserNumber() {
@@ -266,17 +264,40 @@ public class GameLogic {
 
 	}
 
-	public boolean isGameOver() {
+	public String isGameOver() {
 		int numberOfMafia = numberOfChractor.get("MAFIA");
 		int numberOfCop = numberOfChractor.get("COP");
 		int numberOfDoctor = numberOfChractor.get("DOCTOR");
 		int numberOfCivil = numberOfChractor.get("CIVIL");
-
+		Logger.append("---------------------중간 결과 -------------------\n");
+		Logger.append("마피아  " + numberOfMafia +"명 ," + "경찰 " +numberOfCop +"명, " + "의사 " +numberOfDoctor +"명 , "
+					+"시민 " + numberOfCivil + "명 생존!!!\n");
+		
+		if(numberOfMafia==0)
+			return "MAFIALOSE";
+		
 		if (numberOfMafia >= (numberOfCop + numberOfDoctor + numberOfCivil))
-			return true;
+			return "MAFIAWIN";
+			
 
-		return false;
+		return "NOGAMEOVER";
 	}
+	
+	public void gameOver() {
+		state="";
+		when="";
+		wantnext = false;
+		numberOfChractor.clear(); // 직업별 인원 배정
+		userManager.getUsers().clear();
+		
+	}
+	
+	public void endNight() {
+		copChoice="";
+		doctorChoice="";
+		mafiaChoice.clear();
+	}
+
 
 	public String getState() {
 		return state;
@@ -309,5 +330,8 @@ public class GameLogic {
 	public String getDoctorChoice() {
 		return doctorChoice;
 	}
+
+
+
 
 }

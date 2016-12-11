@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.example.changoo.mafia.command.ChatCommand;
 import com.example.changoo.mafia.command.Command;
+import com.example.changoo.mafia.command.GameoverCommand;
 import com.example.changoo.mafia.command.HiddenChatCommand;
 import com.example.changoo.mafia.command.LoginCommand;
 import com.example.changoo.mafia.command.PlayCommand;
@@ -117,7 +118,7 @@ public class MyNetwork extends Thread {
 			mySocket.writeObject(new SocketData(send_command, send_name, send_object));
 
 		} catch (IOException | ClassNotFoundException e) {
-			Logger.append("To."+myName.toString() + "메시지 송신 에러 발생" + e.getMessage() +"\n");
+			Logger.append("To." + myName.toString() + "메시지 송신 에러 발생" + e.getMessage() + "\n");
 		}
 	}
 
@@ -260,7 +261,7 @@ public class MyNetwork extends Thread {
 			else
 				gameLogic.setState("ready");
 
-			broad_cast_toAlive(Command.USERUPDATE, "", userManager.getUsers());
+			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
 
 			/* 모든 유저가 게임 을 시작했다면, 직업별 직업 공지 */
 			if (gameLogic.getState().equals("play")) {
@@ -271,40 +272,59 @@ public class MyNetwork extends Thread {
 								+ gameLogic.getNumberOfChracter("DOCTOR") + "명, " + "시민 "
 								+ gameLogic.getNumberOfChracter("CIVIL") + "명 입니다.");
 
-				send_Message_ToMafia(PlayCommand.IMPOTANTNOTICE, "", "당신은 마피아 입니다.\n사람을 죽이십시오.");
-				send_Message_ToCop(PlayCommand.IMPOTANTNOTICE, "", "당신은 경찰 입니다.\n마피아를 찾아주세요.");
-				send_Message_ToDoctor(PlayCommand.IMPOTANTNOTICE, "", "당신은 의사 입니다.\n마피아로 부터 구해주세요.");
-				send_Message_ToCivil(PlayCommand.IMPOTANTNOTICE, "", "당신은 시민 입니다.\n");
+				send_Message_ToMafia(PlayCommand.IMPOTANTNOTICE, "server", "당신은 마피아 입니다.\n사람을 죽이십시오.");
+				send_Message_ToCop(PlayCommand.IMPOTANTNOTICE, "server", "당신은 경찰 입니다.\n마피아를 찾아주세요.");
+				send_Message_ToDoctor(PlayCommand.IMPOTANTNOTICE, "server", "당신은 의사 입니다.\n마피아로 부터 구해주세요.");
+				send_Message_ToCivil(PlayCommand.IMPOTANTNOTICE, "server", "당신은 시민 입니다.\n");
+				broad_cast_toAlive(PlayCommand.GOSUNNY, "server", "");
 			}
 			break;
 
 		//// * 유저 낮에 있음 */
 		case PlayCommand.IMINSUNNY:
+
 			userinfo = userManager.getUser(recv_name);
 			userinfo.setWhen((String) recv_object);
 			userinfo.setWantnext(false);
-			broad_cast_toAlive(Command.USERUPDATE, "", userManager.getUsers());
-
+			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
+			
+			for(int i=0; i<userManager.size(); i++){
+				Logger.append("WHEN " + userManager.getUser(i).getName()+userManager.getUser(i).getWhen() + "\n" );
+			}
+			
 			/* 모든 유저가 낮에 있음을 확인 */
 			if (userManager.isAllUserInSunny())
 				gameLogic.setWhen("sunny");
 			else
 				gameLogic.setWhen("night");
+			
+			
 
 			/* 낮 기간 타이머를 시작함 */
 			if (gameLogic.getWhen().equals("sunny") && gameLogic.getState().equals("play")) {
+				Logger.append("TIMER START " + recv_name + "\n" );
 				broad_cast_toAlive(PlayCommand.NOTICE, "server", "아침이 밝았습니다");
 				new Thread() {
 					public void run() {
-						Integer timer = 100;
-						while (timer >= 0 && gameLogic.getWhen().equals("sunny") && gameLogic.isWantnext() == false
-								&& gameLogic.getState().equals("play")) {
+						Integer timer = 10;
+						while (timer > 0 && gameLogic.getWhen().equals("sunny") && gameLogic.isWantnext() == false) {
 							timer--;
-							broad_cast_toAlive(PlayCommand.TIMER, "", timer);
+							broad_cast_toAlive(PlayCommand.TIMER, "server", timer);
+							
+							if(timer<=5)
+								broad_cast_toAlive(PlayCommand.NOTICE, "server", "투표까지" + timer);
 							try {
-								Thread.sleep(3000);
+								Thread.sleep(2000);
 							} catch (InterruptedException e) {
 							}
+						}
+
+						if (timer <= 0) {
+							/* 모든 사용자에게 투표 시작을 요청함 */
+							broad_cast_toAlive(PlayCommand.STARTVOTE, "server", "");
+
+							/* 새로운 투표 시작 */
+							gameLogic.newVote();
 						}
 					}
 				}.start();
@@ -315,6 +335,7 @@ public class MyNetwork extends Thread {
 		case PlayCommand.IWANTNEXT:
 			userinfo = userManager.getUser(recv_name);
 			userinfo.setWantnext((boolean) recv_object);
+
 			if ((boolean) recv_object == true)
 				broad_cast_toAlive(PlayCommand.NOTICE, "server", recv_name + "님이 밤으로 가길 원합니다.");
 			else
@@ -328,10 +349,10 @@ public class MyNetwork extends Thread {
 				gameLogic.setWantnext(false);
 
 			if (gameLogic.isWantnext()) {
-				broad_cast_toAlive(PlayCommand.NOTICE, "server", "모든 플레이어가 밤으로 가길 원합니다.");
+				broad_cast_toAlive(PlayCommand.NOTICE, "server", "모든 유저가 투표를 원합니다.");
 
 				/* 터치 불가한 상태로 전환 */
-				broad_cast_toAlive(PlayCommand.NOTOUCHABLE, "", "");
+				broad_cast_toAlive(PlayCommand.NOTOUCHABLE, "server", "");
 
 				/* 카운트 다운 시작 */
 				new Thread() {
@@ -340,7 +361,7 @@ public class MyNetwork extends Thread {
 						int count = 5;
 						while (count > 0) {
 							count--;
-							broad_cast_toAlive(PlayCommand.NOTICE, "", "투표까지    " + count);
+							broad_cast_toAlive(PlayCommand.NOTICE, "server", "투표까지    " + count);
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -352,7 +373,7 @@ public class MyNetwork extends Thread {
 							broad_cast_toAlive(PlayCommand.IMPOTANTNOTICE, "server", "투표 중입니다..");
 
 							/* 모든 사용자에게 투표 시작을 요청함 */
-							broad_cast_toAlive(PlayCommand.STARTVOTE, "", "");
+							broad_cast_toAlive(PlayCommand.STARTVOTE, "server", "");
 
 							/* 새로운 투표 시작 */
 							gameLogic.newVote();
@@ -376,7 +397,7 @@ public class MyNetwork extends Thread {
 				gameLogic.setDied(dieduser);
 
 				/* 유저 정보 갱신, 사망자 공지 */
-				broad_cast_toAlive(Command.USERUPDATE, "server", userManager.getUsers());
+				broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
 				broad_cast_toAlive(PlayCommand.IMPOTANTNOTICE, "server", dieduser + "님이 투표로 처형 되었습니다.");
 				send_Message_ToTarget(dieduser, PlayCommand.IMPOTANTNOTICE, "server", "당신은 사망하였습니다.");
 				send_Message_ToTarget(dieduser, PlayCommand.YOUAREDIE, "server", "");
@@ -386,11 +407,17 @@ public class MyNetwork extends Thread {
 				send_Message_ToTarget(dieduser, PlayCommand.TOUCHABLE, "", "");
 
 				/* 게임 종료 조건 확인 */
-				if (gameLogic.isGameOver())
-					;
+				String gameover=gameLogic.isGameOver();
+				if (gameover.equals("NOGAMEOVER") == false) {
+					Logger.append("--------------------게임 종료 -----------------\n");
+					broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
+					broad_cast(PlayCommand.GAMEOVER, "server", gameover);	
+					gameLogic.gameOver();
+					break;
+				}
 
 				/* 유저 터치 불가한 상태로 전환 */
-				broad_cast_toAlive(PlayCommand.NOTOUCHABLE, "", "");
+				broad_cast_toAlive(PlayCommand.NOTOUCHABLE, "server", "");
 
 				/* 밤이 오기 카운트 시작 */
 				broad_cast_toAlive(PlayCommand.IMPOTANTNOTICE, "server", "5초후 밤이 찾아옵니다.");
@@ -400,7 +427,7 @@ public class MyNetwork extends Thread {
 						int count = 5;
 						while (count > 0) {
 							count--;
-							broad_cast_toAlive(PlayCommand.NOTICE, "", "밤까지    " + count);
+							broad_cast_toAlive(PlayCommand.NOTICE, "server", "밤까지    " + count);
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -412,7 +439,7 @@ public class MyNetwork extends Thread {
 							broad_cast_toAlive(PlayCommand.IMPOTANTNOTICE, "server", "밤이왔습니다..");
 
 							/* 모든 사용자에게 밤으로 가기를 요청함 */
-							broad_cast_toAlive(PlayCommand.GONIGHT, "", "");
+							broad_cast_toAlive(PlayCommand.GONIGHT, "server", "");
 
 							/* 마피아들의 선택을 초기화시킴 */
 							gameLogic.newMafiaChoice();
@@ -426,7 +453,7 @@ public class MyNetwork extends Thread {
 		/// * 유저가 밤에 있음을 알림 */
 		case PlayCommand.IMINNIGHT:
 			userManager.getUser(recv_name).setWhen((String) recv_object);
-			broad_cast_toAlive(Command.USERUPDATE, "server", userManager.getUsers());
+			broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
 
 			if (userManager.isAllUserInNight()) {
 				Logger.append("--------------모든 유저가 밤에 있습니다----------- \n");
@@ -481,7 +508,7 @@ public class MyNetwork extends Thread {
 					/* 마피아가 고른 유저와 , 의사고 고른 유저가 다른 경우, 마피아가 고른 인원 사망 */
 					else {
 
-					/*사망자 갱신, 통보*/
+					/* 사망자 갱신, 통보 */
 					gameLogic.setDied(mafiasChoice);
 					broad_cast_toAlive(PlayCommand.IMPOTANTNOTICE, "server", "지난 밤 마피아에 의해, " + mafiasChoice + " 님이 사망하셨습니다");
 					send_Message_ToTarget(mafiasChoice, PlayCommand.IMPOTANTNOTICE, "server", "당신은 사망하였습니다.");
@@ -492,21 +519,38 @@ public class MyNetwork extends Thread {
 					send_Message_ToTarget(mafiasChoice, PlayCommand.TOUCHABLE, "server", "당신은 사망하였습니다.");
 
 					}
-
+					
+				/*밤이 끝났으므로 선택을 초기화 시킴 */
+				gameLogic.endNight();
+				
+				/* 게임 종료 조건 확인 */
+				String gameover=gameLogic.isGameOver();
+				if (gameover.equals("NOGAMEOVER") == false) {
+					Logger.append("--------------------게임 종료 -----------------\n");
+					broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
+					broad_cast(PlayCommand.GAMEOVER, "server", gameover);				
+					gameLogic.gameOver();
+					break;
+				}
 
 				/* 밤이 끝나고 모든 유저에게 아침으로 가기를, 요청함 */
-				broad_cast_toAlive(PlayCommand.GOSUNNY, "", "");
-				
+				broad_cast_toAlive(PlayCommand.GOSUNNY, "server", "");
+
 				/* 밤을 원하지 않도록 리셋 */
-				for(int i=0; i<userManager.size(); i++)
+				for (int i = 0; i < userManager.size(); i++)
 					userManager.getUser(i).setWantnext(false);
 				gameLogic.setWantnext(false);
-				
-				broad_cast_toAlive(Command.USERUPDATE, "server", userManager.getUsers());
+
+				broad_cast(Command.USERUPDATE, "server", userManager.getUsers());
 			}
 
 			break;
 
+		case GameoverCommand.REGAME:
+			userManager.addUser(recv_name);
+			broad_cast(Command.USERUPDATE, "", userManager.getUsers());
+			break;
+			
 		/* 유저 채팅을 보냄 */
 		case ChatCommand.SENDMESSAGE:
 			broad_cast_toAlive(ChatCommand.SENDMESSAGE, recv_name, recv_object);

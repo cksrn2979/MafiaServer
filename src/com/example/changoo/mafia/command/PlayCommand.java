@@ -21,4 +21,6 @@ public class PlayCommand {
     public static final String NOTOUCHABLE="/play NOTOUCHABLE";
     public static final String TOUCHABLE="/play TOUCHABLE";
     public static final String YOUAREDIE="/play YOUAREDIE";
+    
+    public static final String GAMEOVER="/play GAMEOVER";
 }
