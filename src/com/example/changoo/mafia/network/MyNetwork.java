@@ -79,7 +79,7 @@ public class MyNetwork extends Thread {
 			Logger.append("SEND  "+send_command + ">>>>> to. " +myName +"\n");	
 		} catch (IOException | ClassNotFoundException e) {
 			Logger.append(send_command + ": " + "To." + myName.toString() + "메시지 송신 에러 발생" + e.getMessage() + "\n");
-		}
+		} 
 	}
 
 	class ReceiveMsgThread implements Runnable {
@@ -105,7 +105,6 @@ public class MyNetwork extends Thread {
 						e.printStackTrace();
 						mySocket.close();
 						userManager.removeUser(myName);
-						broadcast(Command.USERUPDATE, myName, userManager.getUsers());
 						Logger.append(userManager.size() + " : 현재 벡터에 담겨진 사용자 수\n");
 						Logger.append("사용자 접속 끊어짐 자원 반납\n");
 						return;
@@ -222,10 +221,9 @@ public class MyNetwork extends Thread {
 			else
 				gameLogic.setState("ready");
 
-			broadcast(Command.USERUPDATE, "", userManager.getUsers());
-
 			/* 모든 유저가 게임 을 시작했다면, 직업별 직업 공지 */
 			if (gameLogic.getState().equals("play")) {
+				broadcast(Command.USERUPDATE, "", userManager.getUsers());
 				sendMsg_ToTargets(userManager.getAlive(), PlayCommand.NOTICE, "", "게임이 시작 되었습니다");
 				sendMsg_ToTargets(userManager.getAlive(), PlayCommand.IMPOTANTNOTICE, "",
 						"마피아 " + gameLogic.getNumberOfChracter("MAFIA") + "명, " + "경찰 "
@@ -250,7 +248,7 @@ public class MyNetwork extends Thread {
 			userinfo = userManager.getUser(recv_name);
 			userinfo.setWhen((String) recv_object);
 			userinfo.setWantnext(false);
-			broadcast(Command.USERUPDATE, "", userManager.getUsers());
+		
 
 			for (int i = 0; i < userManager.size(); i++) {
 				Logger.append("WHEN " + userManager.getUser(i).getName() + userManager.getUser(i).getWhen() + "\n");
@@ -264,6 +262,8 @@ public class MyNetwork extends Thread {
 
 			/* 낮 기간 타이머를 시작함 */
 			if (gameLogic.getWhen().equals("sunny") && gameLogic.getState().equals("play")) {
+				broadcast(Command.USERUPDATE, "", userManager.getUsers());
+				
 				Logger.append("TIMER START " + recv_name + "\n");
 				sendMsg_ToTargets(userManager.getAlive(), PlayCommand.NOTICE, "server", "아침이 밝았습니다");
 				new Thread() {
@@ -276,7 +276,7 @@ public class MyNetwork extends Thread {
 							if (timer <= 5)
 								sendMsg_ToTargets(userManager.getAlive(), PlayCommand.NOTICE, "server", "투표까지" + timer);
 							try {
-								Thread.sleep(1000);
+								Thread.sleep(11000);
 							} catch (InterruptedException e) {
 							}
 						}
@@ -419,9 +419,10 @@ public class MyNetwork extends Thread {
 		/// * 유저가 밤에 있음을 알림 */
 		case PlayCommand.IMINNIGHT:
 			userManager.getUser(recv_name).setWhen((String) recv_object);
-			broadcast(Command.USERUPDATE, "server", userManager.getUsers());
+		
 
 			if (userManager.isAllUserInNight()) {
+				broadcast(Command.USERUPDATE, "server", userManager.getUsers());
 				Logger.append("--------------모든 유저가 밤에 있습니다----------- \n");
 				gameLogic.setWhen("night");
 			}
@@ -495,7 +496,6 @@ public class MyNetwork extends Thread {
 				String gameover = gameLogic.isGameOver();
 				if (gameover.equals("NOGAMEOVER") == false) {
 					Logger.append("--------------------게임 종료 -----------------\n");
-					broadcast(Command.USERUPDATE, "server", userManager.getUsers());
 					broadcast(PlayCommand.GAMEOVER, "server", gameover);
 					gameLogic.gameOver();
 					break;

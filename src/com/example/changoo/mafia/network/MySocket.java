@@ -29,10 +29,9 @@ public class MySocket{
 	}
 
 
-	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{   
-	     oos.writeUnshared(obj);
-	     oos.reset();
-	     oos.flush();
+	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{  
+		oos.writeUnshared(obj);		
+		oos.reset();
 	}
 
 

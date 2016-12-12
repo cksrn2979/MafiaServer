@@ -10,9 +10,19 @@ public class UserInfo implements Serializable {
     private String state="";
     private String when="";
     private boolean wantnext=false;
-
+    
+    public UserInfo() {
+    }
     public UserInfo(String name) {
         this.name = name;
+    }
+    
+    public void change(UserInfo u){
+    	name=u.getName();
+    	character=u.getCharacter();
+    	state=u.getState();
+    	when=u.getWhen();
+    	wantnext=u.isWantnext();
     }
 
     
