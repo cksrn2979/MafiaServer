@@ -37,8 +37,8 @@ public class UserManager {
 		return null;
 	}
 
-	public MyNetwork getUserNetwork(UserInfo user) {
-		return userNetworks.get(user.getName());
+	public MyNetwork getUserNetwork(String username) {
+		return userNetworks.get(username);
 	}
 
 	public void addUserNetwork(String username, MyNetwork network) {
@@ -127,4 +127,53 @@ public class UserManager {
 		return names;
 	}
 
+	public ArrayList<String> getMafias(){
+		ArrayList<String> mafias= new ArrayList<>();
+		for(int i=0; i<this.size(); i++){
+			UserInfo userinfo=userinfos.get(i);
+			if(userinfo.getCharacter().equals("MAFIA") && userinfo.getState().equals("play"))
+				mafias.add(userinfo.getName());
+		}
+		return mafias;		
+	}
+	
+	public ArrayList<String> getCops(){
+		ArrayList<String> cops= new ArrayList<>();
+		for(int i=0; i<this.size(); i++){
+			UserInfo userinfo=userinfos.get(i);
+			if(userinfo.getCharacter().equals("COP") && userinfo.getState().equals("play"))
+				cops.add(userinfo.getName());
+		}
+		return cops;		
+	}
+	
+	public ArrayList<String> getDoctors(){
+		ArrayList<String> doctors= new ArrayList<>();
+		for(int i=0; i<this.size(); i++){
+			UserInfo userinfo=userinfos.get(i);
+			if(userinfo.getCharacter().equals("DOCTOR") && userinfo.getState().equals("play"))
+				doctors.add(userinfo.getName());
+		}
+		return doctors;		
+	}
+	
+	public ArrayList<String> getCivils(){
+		ArrayList<String> civils= new ArrayList<>();
+		for(int i=0; i<this.size(); i++){
+			UserInfo userinfo=userinfos.get(i);
+			if(userinfo.getCharacter().equals("CIVIL") && userinfo.getState().equals("play"))
+				civils.add(userinfo.getName());
+		}
+		return civils;		
+	}
+	
+	public ArrayList<String> getAlive(){
+		ArrayList<String> alives= new ArrayList<>();
+		for(int i=0; i<this.size(); i++){
+			UserInfo userinfo=userinfos.get(i);
+			if(userinfo.getState().equals("play"))
+				alives.add(userinfo.getName());
+		}
+		return alives;	
+	}
 }

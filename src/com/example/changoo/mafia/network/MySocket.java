@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.Socket;
 
+import com.example.changoo.mafia.log.Logger;
+
 public class MySocket{
 
 	private Socket socket;
@@ -29,9 +31,10 @@ public class MySocket{
 
 	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{   
 	     oos.writeUnshared(obj);
-	     oos.reset();	     
+	     oos.reset();
+	     oos.flush();
 	}
-	
+
 
 	public Object readObject() throws ClassNotFoundException, IOException,EOFException {		
 		return ois.readUnshared();
@@ -50,4 +53,7 @@ public class MySocket{
     public Socket getSocket() {
         return socket;
     }
+
+
+
 }

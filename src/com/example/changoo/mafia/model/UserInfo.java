@@ -15,7 +15,15 @@ public class UserInfo implements Serializable {
         this.name = name;
     }
 
-    public boolean isWantnext() {
+    
+    @Override
+	public String toString() {
+		return "UserInfo [name=" + name + ", character=" + character + ", state=" + state + ", when=" + when
+				+ ", wantnext=" + wantnext + "]";
+	}
+
+
+	public boolean isWantnext() {
         return wantnext;
     }
 
