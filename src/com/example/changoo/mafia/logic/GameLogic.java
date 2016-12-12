@@ -12,10 +12,10 @@ public class GameLogic {
 	private final static int MINUSER = 1;
 	private final static int MAXUSER = 8;
 
-	private String state="";
-	private String when="";
+	private String state = "";
+	private String when = "";
 	private boolean wantnext = false;
-	
+
 	private HashMap<Integer, Integer[]> chractorOfUserSize; // 참여 인원 숫자별 직업수
 	private HashMap<String, Integer> numberOfChractor; // 직업별 인원 배정
 	private HashMap<String, String> userVote; // 유저 투표
@@ -37,7 +37,7 @@ public class GameLogic {
 		chractorOfUserSize.put(2, new Integer[] { 1, 1, 0, 0 });
 		chractorOfUserSize.put(3, new Integer[] { 1, 1, 0, 1 });
 		chractorOfUserSize.put(4, new Integer[] { 1, 1, 1, 1 });
-		chractorOfUserSize.put(5, new Integer[] { 1, 1, 1, 2 });
+		chractorOfUserSize.put(5, new Integer[] { 2, 1, 1, 1 });
 		chractorOfUserSize.put(6, new Integer[] { 2, 1, 1, 2 });
 		chractorOfUserSize.put(7, new Integer[] { 2, 1, 1, 3 });
 		chractorOfUserSize.put(8, new Integer[] { 3, 1, 1, 3 });
@@ -65,30 +65,58 @@ public class GameLogic {
 
 		for (int i = 0; i < numberOfUsers; i++) {
 			UserInfo user = userManager.getUser(i);
-			while (true) {
-				int random = (int) (Math.random() * 4);
-				if (random == 0 && numberOfMafias < maxOfMafias) {
+			
+			
+			/*시연용 인원배정 */
+			if (numberOfUsers == 4) {
+				if (user.getName().equals("left") || user.getName().equals("찬구")) {
 					user.setCharacter("MAFIA");
 					numberOfMafias++;
-					break;
 				}
 
-				else if (random == 1 && numberOfCops < maxOfCops) {
+				else if (user.getName().equals("center")) {
 					user.setCharacter("COP");
 					numberOfCops++;
-					break;
 				}
 
-				else if (random == 2 && numberOfDoctors < maxOfDoctors) {
+				else if (user.getName().equals("right")) {
 					user.setCharacter("DOCTOR");
 					numberOfDoctors++;
-					break;
 				}
 
-				else if (random == 3 && numberOfCivils < maxOfCivils) {
+				else {
 					user.setCharacter("CIVIL");
 					numberOfCivils++;
-					break;
+				}
+			}
+			
+			/* 실제 게임 인원 배정 */
+			if(numberOfUsers!=4){
+				while (true) {
+					int random = (int) (Math.random() * 4);
+					if (random == 0 && numberOfMafias < maxOfMafias) {
+						user.setCharacter("MAFIA");
+						numberOfMafias++;
+						break;
+					}
+
+					else if (random == 1 && numberOfCops < maxOfCops) {
+						user.setCharacter("COP");
+						numberOfCops++;
+						break;
+					}
+
+					else if (random == 2 && numberOfDoctors < maxOfDoctors) {
+						user.setCharacter("DOCTOR");
+						numberOfDoctors++;
+						break;
+					}
+
+					else if (random == 3 && numberOfCivils < maxOfCivils) {
+						user.setCharacter("CIVIL");
+						numberOfCivils++;
+						break;
+					}
 				}
 			}
 		}
@@ -250,9 +278,10 @@ public class GameLogic {
 		return maxuser;
 	}
 
-	public int getNumberOfChracter(String character){
+	public int getNumberOfChracter(String character) {
 		return numberOfChractor.get(character);
 	}
+
 	public void setDied(String dieduser) {
 		/* 가장 많이 투표된 유저는 사망 */
 		userManager.getUser(dieduser).setState("die");
@@ -270,34 +299,32 @@ public class GameLogic {
 		int numberOfDoctor = numberOfChractor.get("DOCTOR");
 		int numberOfCivil = numberOfChractor.get("CIVIL");
 		Logger.append("---------------------중간 결과 -------------------\n");
-		Logger.append("마피아  " + numberOfMafia +"명 ," + "경찰 " +numberOfCop +"명, " + "의사 " +numberOfDoctor +"명 , "
-					+"시민 " + numberOfCivil + "명 생존!!!\n");
-		
-		if(numberOfMafia==0)
+		Logger.append("마피아  " + numberOfMafia + "명 ," + "경찰 " + numberOfCop + "명, " + "의사 " + numberOfDoctor + "명 , "
+				+ "시민 " + numberOfCivil + "명 생존!!!\n");
+
+		if (numberOfMafia == 0)
 			return "MAFIALOSE";
-		
+
 		if (numberOfMafia >= (numberOfCop + numberOfDoctor + numberOfCivil))
 			return "MAFIAWIN";
-			
 
 		return "NOGAMEOVER";
 	}
-	
+
 	public void gameOver() {
-		state="";
-		when="";
+		state = "";
+		when = "";
 		wantnext = false;
 		numberOfChractor.clear(); // 직업별 인원 배정
 		userManager.getUsers().clear();
-		
-	}
-	
-	public void endNight() {
-		copChoice="";
-		doctorChoice="";
-		mafiaChoice.clear();
+
 	}
 
+	public void endNight() {
+		copChoice = "";
+		doctorChoice = "";
+		mafiaChoice.clear();
+	}
 
 	public String getState() {
 		return state;
@@ -330,8 +357,5 @@ public class GameLogic {
 	public String getDoctorChoice() {
 		return doctorChoice;
 	}
-
-
-
 
 }

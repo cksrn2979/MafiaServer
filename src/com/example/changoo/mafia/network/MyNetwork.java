@@ -105,6 +105,7 @@ public class MyNetwork extends Thread {
 						e.printStackTrace();
 						mySocket.close();
 						userManager.removeUser(myName);
+						broadcast(Command.USERUPDATE, "server", userManager.getUsers());
 						Logger.append(userManager.size() + " : 현재 벡터에 담겨진 사용자 수\n");
 						Logger.append("사용자 접속 끊어짐 자원 반납\n");
 						return;
@@ -268,7 +269,7 @@ public class MyNetwork extends Thread {
 				sendMsg_ToTargets(userManager.getAlive(), PlayCommand.NOTICE, "server", "아침이 밝았습니다");
 				new Thread() {
 					public void run() {
-						Integer timer = 100;
+						Integer timer = 360;
 						while (timer > 0 && gameLogic.getWhen().equals("sunny") && gameLogic.isWantnext() == false) {
 							timer--;
 							sendMsg_ToTargets(userManager.getAlive(), PlayCommand.TIMER, "server", timer);
@@ -276,7 +277,7 @@ public class MyNetwork extends Thread {
 							if (timer <= 5)
 								sendMsg_ToTargets(userManager.getAlive(), PlayCommand.NOTICE, "server", "투표까지" + timer);
 							try {
-								Thread.sleep(11000);
+								Thread.sleep(1000);
 							} catch (InterruptedException e) {
 							}
 						}

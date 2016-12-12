@@ -29,7 +29,7 @@ public class MySocket{
 	}
 
 
-	public void writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{  
+	public synchronized void  writeObject(Object obj) throws ClassNotFoundException, IOException, EOFException{  
 		oos.writeUnshared(obj);		
 		oos.reset();
 	}
